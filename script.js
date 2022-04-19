@@ -1,18 +1,30 @@
 /* References: 
 This was referenced for building the grid: https://javascript.plainenglish.io/the-game-of-life-using-javascript-fc1aaec8274f
-
 */
 
 //user input grid size
 var gameArray;
 var inactive_array = [];
-var size = window.prompt("Enter Number for Grid Size: ");
-createArray();
+var gameClock;
+var size;
+var genNumber;
+
 //function that loads the game
 function startgame(){
+  genNumber=0;
+  promptSize();
+  createArray();
     var display = document.getElementById("grid");
     var grid = creategrid();
     display.appendChild(grid);  
+}
+function promptSize(){
+  size = window.prompt("Enter Number for Grid Size: (Minimum size is 5)");
+  if(size<5){
+     alert("You entered a size that was too small (Minimum size is 5)");
+    promptSize();
+  }
+  showButtons();
 }
 
 //creating grid
@@ -84,17 +96,10 @@ function createArray(){
       inactive_array[i][j]=0;
     }
   }
-  //inactive_array=gameArray;
-//  for (let i = 0; i < size; i++) {
- //               for (let j = 0; j < size; j++) {
-  //                inactive_array[i][j]= gameArray[i][j];
-                  
-    //            }
-   //}
+
 }
 function displayArray(){
   for(let i=0;i<size; i++){
-  
     for(let j=0;j<size;j++){
       let id= "td_" + i + "_" + j;
       let curr=document.getElementById(id);
@@ -108,16 +113,21 @@ function displayArray(){
       }
     }
   }
+  showPopulation();
 }
 
-function start(){
+function startautogen(){
   //Start a timer to increment a generation every 5 sec
-  //Use an interval ?
+  gameClock=setInterval(gen1,5000);
+  
 }
-function stop(){
+function stopautogen(){
   //Use clearinterval to stop that timer
+  clearInterval(gameClock);
 }
 function reset(){
+	genNumber=0;
+	document.getElementById("generation").innerHTML = "Generation:"+genNumber;
   for(let i=0;i<size; i++){
     //Initialize a new column
     gameArray[i]=[];
@@ -129,10 +139,9 @@ function reset(){
 }
 //Game of life functions
 function updateLifeCycle() {
-
+genNumber++;
             for (let i = 0; i < size; i++) {
                 for (let j = 0; j < size; j++) {
-                  
                   console.log(`Examining ${i} , ${j}`);
                   console.log(gameArray.toString());
                     let new_state = updateCellValue(i, j);
@@ -145,18 +154,21 @@ function updateLifeCycle() {
                   
                 }
    }
-            //gameArray = inactive_array;
-         //   document.getElementById("generation").innerHTML = this.generation;
+            document.getElementById("generation").innerHTML = "Generation:"+genNumber;
 }
+
 function gen1(){
   console.log(gameArray.toString());
   updateLifeCycle();
   displayArray();
 }
 function gen23(){
-  updateLifeCycle();
+  for(let i=0;i<23;i++){
+    updateLifeCycle();
+  }
   displayArray();
 }
+
 function updateCellValue(row, col){
 
             let total = countNeighbours(row, col);
@@ -180,18 +192,19 @@ function updateCellValue(row, col){
 
 function countNeighbours(row, col){
             let total_neighbours = 0;
-            total_neighbours += setCellValueHelper(row - 1, col - 1);
-            total_neighbours += setCellValueHelper(row - 1, col);
-            total_neighbours += setCellValueHelper(row - 1, col + 1);
-            total_neighbours += setCellValueHelper(row, col - 1);
-            total_neighbours += setCellValueHelper(row, col + 1);
-            total_neighbours += setCellValueHelper(row + 1, col - 1);
-            total_neighbours += setCellValueHelper(row + 1, col);
-            total_neighbours += setCellValueHelper(row + 1, col + 1);
+            total_neighbours += checkCellValueHelper(row - 1, col - 1);
+            total_neighbours += checkCellValueHelper(row - 1, col);
+            total_neighbours += checkCellValueHelper(row - 1, col + 1);
+            total_neighbours += checkCellValueHelper(row, col - 1);
+            total_neighbours += checkCellValueHelper(row, col + 1);
+            total_neighbours += checkCellValueHelper(row + 1, col - 1);
+            total_neighbours += checkCellValueHelper(row + 1, col);
+            total_neighbours += checkCellValueHelper(row + 1, col + 1);
             console.log("Total Neighbors:"+total_neighbours);
             return total_neighbours;
 }
-function setCellValueHelper(row, col){
+
+function checkCellValueHelper(row, col){
   console.log(`trying [${row}][${col}]`);
   console.log(gameArray.toString());
             if(row<0||row>=size){
@@ -203,8 +216,82 @@ function setCellValueHelper(row, col){
             }else {
               console.log("Valid input:"+gameArray[row][col]);
               return gameArray[row][col];
-            }
-            
+            } 
 }
 
+function block(){
+  reset();
+  for(let i=0;i<2; i++){
+    for(let j=0; j<2; j++){
+      gameArray[i][j]=1;
+      
+    }
+  }
+  displayArray();
+}
+function blinker(){
+  reset();
+  let center = Math.floor(size/2);
+  for (let i=center-1; i<center; i++){
+    for(let j = i; j<i+3; j++)
+    gameArray[i][j] = 1;
+  }
+  
+  displayArray();
+}
+function beacon(){
+  reset();
+  for(let i=0;i<2; i++){
+    for(let j=0; j<2; j++){
+      gameArray[i][j]=1;     
+    }
+  }
+  
+  for(let i=2;i<4; i++){
+    for(let j=2; j<4; j++){
+      gameArray[i][j]=1;     
+    }
+  }
+  displayArray();
+}
+function glider(){
+  reset();
+  gameArray[0][2]=1;
+  gameArray[1][0]=1;
+  gameArray[1][2]=1;
+  gameArray[2][1]=1;
+  gameArray[2][2]=1;
+  displayArray();
+}
+
+function hide(ID){
+  document.getElementById(ID).classList.add("hidden");
+}
+function show(ID){
+  document.getElementById(ID).classList.remove("hidden");
+}
+function showButtons(){
+  show("startautogen");
+  show("stop");
+  show("display");
+  show("gen1");
+  show("gen23");
+  show("reset");
+  show("block");
+  show("blinker");
+  show("beacon");
+  show("glider");
+  show("generation");
+  show("population");
+  hide("startgame");
+}
+function showPopulation(){
+  let population=0;
+  for(let i=0;i<size; i++){
+    for(let j=0;j<size;j++){
+      if(gameArray[i][j]==1)population++;
+    }
+  }
+  document.getElementById("population").innerHTML = "Population:"+population;
+}
 
